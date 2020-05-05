@@ -99,3 +99,10 @@ float get_normal_random(){
     return cos(2*PI*y2)*sqrt(-2.*log(y1));
 
 }
+
+/* Inizializza una ip_mat con dimensioni h w e k. Ogni elemento è inizializzato a v.
+ * Inoltre crea un vettore di stats per contenere le statische sui singoli canali.
+ * */
+ip_mat * ip_mat_create(unsigned int h, unsigned int w,unsigned  int k, float v) {
+  int a = 0;
+}
