@@ -99,3 +99,5 @@ float get_normal_random(){
     return cos(2*PI*y2)*sqrt(-2.*log(y1));
 
 }
+
+a
