@@ -99,3 +99,128 @@ float get_normal_random(){
     return cos(2*PI*y2)*sqrt(-2.*log(y1));
 
 }
+
+/* Crea una copia di una ip_mat e lo restituisce in output */
+ip_mat * ip_mat_copy(ip_mat * in)
+{
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    for(i = 0; i < in->h; i++)
+        for(j = 0; j < in->w; j++)
+            for(k = 0; k < in->k; k++)
+                set_val(out, i, j, k, get_val(in, i, j, k));
+
+    compute_stats(out);
+
+    return out;
+}
+
+/* Esegue la sottrazione di due ip_mat (tutte le dimensioni devono essere identiche)
+ * e la restituisce in output.
+ * */
+ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b)
+{
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k))
+    {
+        printf("The dimensions are different")
+        exit();//inserire codice errore
+    }
+    else
+    {
+        for(i = 0; i < out->h; i++)
+            for(j = 0; j < out->w; j++)
+                for(k = 0; k < out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, k, k) - get_val(b, i, k, k)));
+
+        compute_stats(out);
+
+        return out;
+    }
+}
+
+/* Converte un'immagine RGB ad una immagine a scala di grigio.
+ * Quest'operazione viene fatta calcolando la media per ogni pixel sui 3 canali
+ * e creando una nuova immagine avente per valore di un pixel su ogni canale la media appena calcolata.
+ * Avremo quindi che tutti i canali saranno uguali.
+ * */
+/*la nuova ip_mat ha 3 canali con valori tutti uguali*/
+ip_mat * ip_mat_to_gray_scale(ip_mat * in)
+{
+    unsigned i, j, k, n;
+    float sum, average;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    for(i = 0; i < in->h; i++)
+    {
+        for(j = 0; j < in->w; j++)
+        {
+            sum = 0.0;
+            for(k = 0; k < in->k; k++)
+                sum += get_val(in, i, j, k);
+
+            for(n = 0; n < 3; n++)
+                set_val(out, i, j, n, (sum / 3));
+        }
+    }
+        
+    compute_stats(out);
+    
+    return out;
+}
+
+/* Crea un filtro per aggiungere profonditÃ  */
+ip_mat * create_emboss_filter()
+{
+    unsigned i, j;
+    ip_mat *out;
+    float emboss_val[][] = {
+        {-2.0, -1.0, 0.0}, 
+        {-1.0, 1.0, 1.0}, 
+        {0.0, 1.0, 2.0}
+    };
+
+    out = ip_mat_create(3, 3, 1, 0.0);
+
+    for(i = 0; i < 3; i++)
+        for(j = 0; i < 3; j++)
+            set_val(out, i, j, 0, emboss_val[i][j]);
+}
+
+/* Nell'operazione di clamping i valori <low si convertono in low e i valori >high in high.*/
+void clamp(ip_mat * t, float low, float high)
+{
+    unsigned i, j, k;
+
+    for(i = 0; i < t->w; i++)
+        for(j = 0; j < t->h; j++)
+            for(k = 0; k < t->k; k++)
+            {
+                if(get_val(t, i, j, k) > low)
+                    set_val(t, i, j, k, low);
+                if(get_val(t, i, j, k) > high)
+                    set_val(t, i, j, k, high);
+            }
+}
+
+/* Effettua la convoluzione di un ip_mat "a" con un ip_mat "f".
+ * La funzione restituisce un ip_mat delle stesse dimensioni di "a".
+ * */
+ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
+{
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+
+}
