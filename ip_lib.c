@@ -168,7 +168,7 @@ ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b){
         for(i=0; i<out->h; i++)
             for(j=0; j<out->w; j++)
                 for(k=0; k<out->k; k++)
-                    set_val(out, i, j, k, (get_val(a, i, k, k) + get_val(b, i, k, k)/2));
+                    set_val(out, i, j, k, (get_val(a, i, k, k) + get_val(b, i, k, k))/2);
 
         compute_stats(out);
         return out;
