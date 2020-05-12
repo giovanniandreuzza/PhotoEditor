@@ -161,7 +161,6 @@ ip_mat * ip_mat_to_gray_scale(ip_mat * in)
     out = ip_mat_create(a->h, a->w, a->k, 0.0);
 
     for(i = 0; i < in->h; i++)
-    {
         for(j = 0; j < in->w; j++)
         {
             sum = 0.0;
@@ -171,7 +170,6 @@ ip_mat * ip_mat_to_gray_scale(ip_mat * in)
             for(n = 0; n < 3; n++)
                 set_val(out, i, j, n, (sum / 3));
         }
-    }
         
     compute_stats(out);
     
