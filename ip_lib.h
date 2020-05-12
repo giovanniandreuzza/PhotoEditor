@@ -36,7 +36,22 @@ typedef struct {
 ip_mat * ip_mat_create(unsigned int h, unsigned int w,unsigned  int k, float v);
 
 /* Libera la memoria (data, stat e la struttura) */
-void ip_mat_free(ip_mat *a);
+void ip_mat_free(ip_mat *a){
+ unsigned i, j;
+
+    if(a != NULL){
+        free(a->stat);
+
+        for(i=0; i<a->h; i++){
+            for(j=0; j<a->w; j++){
+                free(a->data[i][j]);
+            }
+            free(a->data[i]);
+        }
+        free(a);
+    }    
+}
+
 
 /* Restituisce il valore in posizione i,j,k */
 float get_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k);
@@ -51,7 +66,18 @@ void compute_stats(ip_mat * t);
 
 /* Inizializza una ip_mat con dimensioni w h e k.
  * Ogni elemento è generato da una gaussiana con media mean e varianza var */
-void ip_mat_init_random(ip_mat * t, float mean, float var);
+void ip_mat_init_random(ip_mat * t, float mean, float var){
+    unsigned i, j, k;
+
+    for(i=0; i<t->h; i++)
+        for(j=0; j<t->w; j++)
+            for(k=0; k<t->k; k++){
+                float val = mean+var*get_normal_random();
+                set_val(t, i, j, k, val);
+            }
+}
+
+
 
 /* Crea una copia di una ip_mat e lo restituisce in output */
 ip_mat * ip_mat_copy(ip_mat * in);
@@ -88,7 +114,28 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione);
 /**** PARTE 1: OPERAZIONI MATEMATICHE FRA IP_MAT ****/
 /* Esegue la somma di due ip_mat (tutte le dimensioni devono essere identiche)
  * e la restituisce in output. */
-ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b);
+ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b){
+   unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)){
+        printf("The dimensions are different");
+        exit(1);
+    }
+    else{
+        for(i=0; i<out->h; i++)
+            for(j=0; j<out->w; j++)
+                for(k=0; k<out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, k, k) + get_val(b, i, k, k)));
+
+        compute_stats(out);
+        return out;
+    }
+}
+
+
 
 /* Esegue la sottrazione di due ip_mat (tutte le dimensioni devono essere identiche)
  * e la restituisce in output.
@@ -103,7 +150,26 @@ ip_mat * ip_mat_mul_scalar(ip_mat *a, float c);
 ip_mat *  ip_mat_add_scalar(ip_mat *a, float c);
 
 /* Calcola la media di due ip_mat a e b e la restituisce in output.*/
-ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b);
+ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b){
+   unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)){
+        printf("The dimensions are different");
+        exit(1);
+    }
+    else{
+        for(i=0; i<out->h; i++)
+            for(j=0; j<out->w; j++)
+                for(k=0; k<out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, k, k) + get_val(b, i, k, k)/2));
+
+        compute_stats(out);
+        return out;
+    }
+
 
 /**** PARTE 2: SEMPLICI OPERAZIONI SU IMMAGINI ****/
 /* Converte un'immagine RGB ad una immagine a scala di grigio.
@@ -125,7 +191,29 @@ ip_mat * ip_mat_brighten(ip_mat * a, float bright);
  * per mezzo della variabile amount.
  * out = a + gauss_noise*amount
  * */
-ip_mat * ip_mat_corrupt(ip_mat * a, float amount);
+ip_mat * ip_mat_corrupt(ip_mat * a, float amount){
+   unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    for(i=0; i<a->h; i++)
+        for(j=0; j<a->w; j++)
+        {
+            float val = 0.0;
+            for(k=0; k<a->k; k++)
+                val = (get_val(a, i, k, k) + ?gauss_noise? * amount;
+                set_val(out, i, j, k, val);
+        }
+            
+
+    /*aggiungere controllo che i valori siano tra 0 e 255*/
+
+    compute_stats(out);
+    return out;
+}
+
+
 
 /**** PARTE 3: CONVOLUZIONE E FILTRI *****/
 
@@ -149,7 +237,27 @@ ip_mat * ip_mat_padding(ip_mat * a, int pad_h, int pad_w);
 ip_mat * create_sharpen_filter();
 
 /* Crea un filtro per rilevare i bordi */
-ip_mat * create_edge_filter();
+ip_mat * create_edge_filter(){
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(3, 3, 1, 0.0);
+
+    /*inserire i valori che sono nella tabella a pag. 8 sezione edge, pensa ad un piano cartesiano x,y la z lasciala a 0*/
+    /*prima riga*/
+    set_val(out, 0, 0, 0, -1);
+
+    /*seconda riga*/
+    set_val(out, 0, 1, 0, -1);
+
+    /*terza riga*/
+    set_val(out, 0, 2, 0, -1);
+
+    compute_stats(out);
+    return out;
+}
+
+
 
 /* Crea un filtro per aggiungere profondità */
 ip_mat * create_emboss_filter();
@@ -171,7 +279,7 @@ ip_mat * create_gaussian_filter(int w, int h, int k, float sigma);
  * di valori in [0,new_max].
  * */
 void rescale(ip_mat * t, float new_max);
-
+/*- -*/
 /* Nell'operazione di clamping i valori <low si convertono in low e i valori >high in high.*/
 void clamp(ip_mat * t, float low, float high);
 
