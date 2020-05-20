@@ -55,6 +55,8 @@ ip_mat * bitmap_to_ip_mat(Bitmap * img){
         }
     }
 
+    compute_stats(out);
+
     return out;
 }
 
@@ -76,7 +78,7 @@ Bitmap * ip_mat_to_bitmap(ip_mat * t){
 }
 
 float get_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k){
-    if(i<a->h && j<a->w &&k<a->k){  /* j>=0 and k>=0 and i>=0 is non sense*/
+    if(i<a->h && j<a->w &&k<a->k){
         return a->data[i][j][k];
     }else{
         printf("Errore get_val!!!");
@@ -93,11 +95,13 @@ void set_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k, float v){
     }
 }
 
-float get_normal_random(){
+float get_normal_random(float media, float std){
+
     float y1 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
     float y2 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
-    return cos(2*PI*y2)*sqrt(-2.*log(y1));
+    float num = cos(2*PI*y2)*sqrt(-2.*log(y1));
 
+    return media + num*std;
 }
 
 /* Crea una copia di una ip_mat e lo restituisce in output */
