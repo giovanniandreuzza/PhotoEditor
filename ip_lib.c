@@ -192,12 +192,11 @@ ip_mat * create_emboss_filter()
         {0.0, 1.0, 2.0}
     };
 
-    out = ip_mat_create(3, 3, 3, 0.0); /*ip_mat 3X3X3 inizializzata a 0.0*/
+    out = ip_mat_create(3, 3, 1, 0.0);
 
     for(i = 0; i < 3; i++)
         for(j = 0; i < 3; j++)
-            for(k = 0; k < 3; k++)
-                set_val(out, i, j, k, emboss_val[i][j]);
+                set_val(out, i, j, 0, emboss_val[i][j]);
 
     return out;
 }
@@ -223,10 +222,36 @@ void clamp(ip_mat * t, float low, float high)
  * */
 ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
 {
-    unsigned i, j, k;
+    unsigned i, j, k, ii, jj;
+    unsigned pad_h = ((f->h) - 1)/2;
+    unsigned pad_w = ((f->h) - 1)/2;
+
     ip_mat *out;
+    ip_mat *pad;
 
-    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);/**che sia da fare il controllo che *a != NULL?*/
+    pad = ip_mat_padding(a, pad_h, pad_w)
+    
+    for(k = 0; k < out->k; k++)
+        for(i = 0; i < out->h; i++)
+            for(j = 0; j < out->w; j++)        
+            {               
+                ip_mat *supp;
+                float val = 0.0;
 
+                supp = ip_mat_subset(pad, i, i + f->h, j, j + f->w);
 
+                for(ii = 0; ii < supp->h; ii++)
+                    for(jj = 0; jj < supp->w; jj++)
+                        val += get_val(a, i + ii, j + jj; k) * get_val(sub, ii, jj, k);
+ 
+                set_val(out, i, j, k, val);
+                ip_mat_free(supp);
+            }
+
+    ip_mat_free(pad);
+    /*clamp(out, 0, 255); da verificare se va inserito*/
+    compute_stats(out);
+
+    return out;
 }
