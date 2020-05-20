@@ -226,9 +226,11 @@ ip_mat * create_edge_filter(){
     unsigned i, j, k;
     ip_mat *out;
 
-    out = ip_mat_create(3, 3, 1, -1);
+    out = ip_mat_create(3, 3, 3, -1);
 
     set_val(out, 1, 1, 0, 8);
+    set_val(out, 1, 1, 1, 8);
+    set_val(out, 1, 1, 2, 8);
 
     compute_stats(out);
     return out;
