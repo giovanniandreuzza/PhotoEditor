@@ -105,7 +105,7 @@ float get_normal_random(float media, float std){
 }
 
 /* Crea una copia di una ip_mat e lo restituisce in output */
-ip_mat * ip_mat_copy(ip_mat * in)
+ip_mat * ip_mat_copy(ip_mat * in) /*che sia da controllare che *in != NULL ?*/
 {
     unsigned i, j, k;
     ip_mat *out;
@@ -130,15 +130,15 @@ ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b)
     unsigned i, j, k;
     ip_mat *out;
 
-    out = ip_mat_create(a->h, a->w, a->k, 0.0);
-
-    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k))
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)) /*controllo che le dimensioni siano identiche*/
     {
         printf("The dimensions are different")
-        exit();//inserire codice errore
+        exit(1); /*inserire codice errore*/
     }
     else
     {
+        out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
         for(i = 0; i < out->h; i++)
             for(j = 0; j < out->w; j++)
                 for(k = 0; k < out->k; k++)
@@ -162,11 +162,12 @@ ip_mat * ip_mat_to_gray_scale(ip_mat * in)
     float sum, average;
     ip_mat *out;
 
-    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+    out = ip_mat_create(a->h, a->w, a->k, 0.0); /*che sia da fare il controllo che *in non sia NULL?*/
 
     for(i = 0; i < in->h; i++)
         for(j = 0; j < in->w; j++)
         {
+            /*effetuo la somma dei tre livelli*/
             sum = 0.0;
             for(k = 0; k < in->k; k++)
                 sum += get_val(in, i, j, k);
@@ -180,10 +181,10 @@ ip_mat * ip_mat_to_gray_scale(ip_mat * in)
     return out;
 }
 
-/* Crea un filtro per aggiungere profonditÃ  */
+/* Crea un filtro per aggiungere profondità  */
 ip_mat * create_emboss_filter()
 {
-    unsigned i, j;
+    unsigned i, j, k;
     ip_mat *out;
     float emboss_val[][] = {
         {-2.0, -1.0, 0.0}, 
@@ -191,11 +192,14 @@ ip_mat * create_emboss_filter()
         {0.0, 1.0, 2.0}
     };
 
-    out = ip_mat_create(3, 3, 1, 0.0);
+    out = ip_mat_create(3, 3, 3, 0.0); /*ip_mat 3X3X3 inizializzata a 0.0*/
 
     for(i = 0; i < 3; i++)
         for(j = 0; i < 3; j++)
-            set_val(out, i, j, 0, emboss_val[i][j]);
+            for(k = 0; k < 3; k++)
+                set_val(out, i, j, k, emboss_val[i][j]);
+
+    return out;
 }
 
 /* Nell'operazione di clamping i valori <low si convertono in low e i valori >high in high.*/
@@ -207,7 +211,7 @@ void clamp(ip_mat * t, float low, float high)
         for(j = 0; j < t->h; j++)
             for(k = 0; k < t->k; k++)
             {
-                if(get_val(t, i, j, k) > low)
+                if(get_val(t, i, j, k) < low)
                     set_val(t, i, j, k, low);
                 if(get_val(t, i, j, k) > high)
                     set_val(t, i, j, k, high);
