@@ -128,7 +128,7 @@ ip_mat * ip_mat_copy(ip_mat * in) /*che sia da controllare che *in != NULL ?*/
 ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b)
 {
     unsigned i, j, k;
-    ip_mat *out;
+    ip_mat *out = NULL;
 
     if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)) /*controllo che le dimensioni siano identiche*/
     {
@@ -192,11 +192,12 @@ ip_mat * create_emboss_filter()
         {0.0, 1.0, 2.0}
     };
 
-    out = ip_mat_create(3, 3, 1, 0.0);
+    out = ip_mat_create(3, 3, 3, 0.0);
 
     for(i = 0; i < 3; i++)
-        for(j = 0; i < 3; j++)
-                set_val(out, i, j, 0, emboss_val[i][j]);
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                set_val(out, i, j, k, emboss_val[i][j]);
 
     return out;
 }
