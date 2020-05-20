@@ -100,33 +100,6 @@ float get_normal_random(){
 
 }
 
-/**** PARTE 1: TIPO DI DATI ip_mat E MEMORIA ****/
-
-/* Inizializza una ip_mat con dimensioni h w e k. Ogni elemento è inizializzato a v.
- * Inoltre crea un vettore di stats per contenere le statische sui singoli canali.
- * */
-ip_mat * ip_mat_create(unsigned int h, unsigned int w,unsigned  int k, float v);
-
-/* Libera la memoria (data, stat e la struttura) */
-void ip_mat_free(ip_mat *a);
-
-/* Restituisce il valore in posizione i,j,k */
-float get_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k);
-
-/* Qui c'era la funzione set_val*/
-
-/* Calcola il valore minimo, il massimo e la media per ogni canale
- * e li salva dentro la struttura ip_mat stats
- * */
-void compute_stats(ip_mat * t);
-
-/* Inizializza una ip_mat con dimensioni w h e k.
- * Ogni elemento è generato da una gaussiana con media mean e varianza var */
-void ip_mat_init_random(ip_mat * t, float mean, float var);
-
-/* Crea una copia di una ip_mat e lo restituisce in output */
-ip_mat * ip_mat_copy(ip_mat * in);
-
 /* Restituisce una sotto-matrice, ovvero la porzione individuata da:
  * t->data[row_start...row_end][col_start...col_end][0...k]
  * La terza dimensione la riportiamo per intero, stiamo in sostanza prendendo un sottoinsieme
@@ -145,37 +118,6 @@ ip_mat * ip_mat_subset(ip_mat * t, unsigned int row_start, unsigned int row_end,
 	}
 	return sub;
 }
-/* Concatena due ip_mat su una certa dimensione.
- * Ad esempio:
- * ip_mat_concat(ip_mat * a, ip_mat * b, 0);
- *      produrrà un nuovo ip_mat di dimensioni:
- *      out.h = a.h + b.h
- *      out.w = a.w = b.w
- *      out.k = a.k = b.k
- *
- * ip_mat_concat(ip_mat * a, ip_mat * b, 1);
- *      produrrà un nuovo ip_mat di dimensioni:
- *      out.h = a.h = b.h
- *      out.w = a.w + b.w
- *      out.k = a.k = b.k
- *
- * ip_mat_concat(ip_mat * a, ip_mat * b, 2);
- *      produrrà un nuovo ip_mat di dimensioni:
- *      out.h = a.h = b.h
- *      out.w = a.w = b.w
- *      out.k = a.k + b.k
- * */
-ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione);
-
-/**** PARTE 1: OPERAZIONI MATEMATICHE FRA IP_MAT ****/
-/* Esegue la somma di due ip_mat (tutte le dimensioni devono essere identiche)
- * e la restituisce in output. */
-ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b);
-
-/* Esegue la sottrazione di due ip_mat (tutte le dimensioni devono essere identiche)
- * e la restituisce in output.
- * */
-ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b);
 
 /* Moltiplica un ip_mat per uno scalare c. Si moltiplica c per tutti gli elementi di "a"
  * e si salva il risultato in un nuovo tensore in output. */
@@ -192,20 +134,6 @@ ip_mat * ip_mat_mul_scalar(ip_mat *a, float c){
 	return tensore;
 }
 
-/* Aggiunge ad un ip_mat uno scalare c e lo restituisce in un nuovo tensore in output. */
-ip_mat *  ip_mat_add_scalar(ip_mat *a, float c);
-
-/* Calcola la media di due ip_mat a e b e la restituisce in output.*/
-ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b);
-
-/**** PARTE 2: SEMPLICI OPERAZIONI SU IMMAGINI ****/
-/* Converte un'immagine RGB ad una immagine a scala di grigio.
- * Quest'operazione viene fatta calcolando la media per ogni pixel sui 3 canali
- * e creando una nuova immagine avente per valore di un pixel su ogni canale la media appena calcolata.
- * Avremo quindi che tutti i canali saranno uguali.
- * */
-ip_mat * ip_mat_to_gray_scale(ip_mat * in);
-
 /* Effettua la fusione (combinazione convessa) di due immagini */ 
 ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
 	unsigned int i,j,l;
@@ -219,24 +147,6 @@ ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
 	}
 	return fusion;
 }
-
-/* Operazione di brightening: aumenta la luminosità dell'immagine
- * aggiunge ad ogni pixel un certo valore*/
-ip_mat * ip_mat_brighten(ip_mat * a, float bright);
-
-/* Operazione di corruzione con rumore gaussiano:
- * Aggiunge del rumore gaussiano all'immagine, il rumore viene enfatizzato
- * per mezzo della variabile amount.
- * out = a + gauss_noise*amount
- * */
-ip_mat * ip_mat_corrupt(ip_mat * a, float amount);
-
-/**** PARTE 3: CONVOLUZIONE E FILTRI *****/
-
-/* Effettua la convoluzione di un ip_mat "a" con un ip_mat "f".
- * La funzione restituisce un ip_mat delle stesse dimensioni di "a".
- * */
-ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f);
 
 /* Aggiunge un padding all'immagine. Il padding verticale è pad_h mentre quello
  * orizzontale è pad_w.
@@ -267,15 +177,6 @@ ip_mat * ip_mat_padding(ip_mat * a, int pad_h, int pad_w){
 	return out;
 }
 
-/* Crea un filtro di sharpening */
-ip_mat * create_sharpen_filter();
-
-/* Crea un filtro per rilevare i bordi */
-ip_mat * create_edge_filter();
-
-/* Crea un filtro per aggiungere profondità */
-ip_mat * create_emboss_filter();
-
 /* Crea un filtro medio per la rimozione del rumore */
 ip_mat * create_average_filter(int w, int h, int k){
 	int i,j,l;
@@ -290,23 +191,172 @@ ip_mat * create_average_filter(int w, int h, int k){
 	return average;
 }
 
-/* Crea un filtro gaussiano per la rimozione del rumore */
-ip_mat * create_gaussian_filter(int w, int h, int k, float sigma);
+/* Samuele*/
 
-/* Effettua una riscalatura dei dati tale che i valori siano in [0,new_max].
- * Utilizzate il metodo compute_stat per ricavarvi il min, max per ogni canale.
- *
- * I valori sono scalati tramite la formula valore-min/(max - min)
- *
- * Si considera ogni indice della terza dimensione indipendente, quindi l'operazione
- * di scalatura va ripetuta per ogni "fetta" della matrice 3D.
- * Successivamente moltiplichiamo per new_max gli elementi della matrice in modo da ottenere un range
- * di valori in [0,new_max].
+
+/* Crea una copia di una ip_mat e lo restituisce in output */
+ip_mat * ip_mat_copy(ip_mat * in) /*che sia da controllare che *in != NULL ?*/
+{
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    for(i = 0; i < in->h; i++)
+        for(j = 0; j < in->w; j++)
+            for(k = 0; k < in->k; k++)
+                set_val(out, i, j, k, get_val(in, i, j, k));
+
+    compute_stats(out);
+
+    return out;
+}
+
+/* Esegue la sottrazione di due ip_mat (tutte le dimensioni devono essere identiche)
+ * e la restituisce in output.
  * */
-void rescale(ip_mat * t, float new_max);
+ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b)
+{
+    unsigned i, j, k;
+    ip_mat *out = NULL;
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)) /*controllo che le dimensioni siano identiche*/
+    {
+        printf("The dimensions are different")
+        exit(1); /*inserire codice errore*/
+    }
+    else
+    {
+        out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+        for(i = 0; i < out->h; i++)
+            for(j = 0; j < out->w; j++)
+                for(k = 0; k < out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, k, k) - get_val(b, i, k, k)));
+
+        compute_stats(out);
+
+        return out;
+    }
+}
+
+/* Converte un'immagine RGB ad una immagine a scala di grigio.
+ * Quest'operazione viene fatta calcolando la media per ogni pixel sui 3 canali
+ * e creando una nuova immagine avente per valore di un pixel su ogni canale la media appena calcolata.
+ * Avremo quindi che tutti i canali saranno uguali.
+ * */
+/*la nuova ip_mat ha 3 canali con valori tutti uguali*/
+ip_mat * ip_mat_to_gray_scale(ip_mat * in)
+{
+    unsigned i, j, k, n;
+    float sum, average;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0); /*che sia da fare il controllo che *in non sia NULL?*/
+
+    for(i = 0; i < in->h; i++)
+        for(j = 0; j < in->w; j++)
+        {
+            /*effetuo la somma dei tre livelli*/
+            sum = 0.0;
+            for(k = 0; k < in->k; k++)
+                sum += get_val(in, i, j, k);
+
+            for(n = 0; n < 3; n++)
+                set_val(out, i, j, n, (sum / 3));
+        }
+        
+    compute_stats(out);
+    
+    return out;
+}
+
+/* Crea un filtro per aggiungere profondità  */
+ip_mat * create_emboss_filter()
+{
+    unsigned i, j, k;
+    ip_mat *out;
+    float emboss_val[][] = {
+        {-2.0, -1.0, 0.0}, 
+        {-1.0, 1.0, 1.0}, 
+        {0.0, 1.0, 2.0}
+    };
+
+    out = ip_mat_create(3, 3, 3, 0.0);
+
+    for(i = 0; i < 3; i++)
+        for(j = 0; j < 3; j++)
+            for(k = 0; k < 3; k++)
+                set_val(out, i, j, k, emboss_val[i][j]);
+
+    return out;
+}
 
 /* Nell'operazione di clamping i valori <low si convertono in low e i valori >high in high.*/
-void clamp(ip_mat * t, float low, float high);
+void clamp(ip_mat * t, float low, float high)
+{
+    unsigned i, j, k;
+
+    for(i = 0; i < t->w; i++)
+        for(j = 0; j < t->h; j++)
+            for(k = 0; k < t->k; k++)
+            {
+                if(get_val(t, i, j, k) < low)
+                    set_val(t, i, j, k, low);
+                if(get_val(t, i, j, k) > high)
+                    set_val(t, i, j, k, high);
+            }
+}
+
+/* Effettua la convoluzione di un ip_mat "a" con un ip_mat "f".
+ * La funzione restituisce un ip_mat delle stesse dimensioni di "a".
+ * */
+ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
+{
+    unsigned i, j, k, ii, jj;
+    unsigned pad_h = ((f->h) - 1)/2;
+    unsigned pad_w = ((f->h) - 1)/2;
+
+    ip_mat *out;
+    ip_mat *pad;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);/**che sia da fare il controllo che *a != NULL?*/
+    pad = ip_mat_padding(a, pad_h, pad_w)
+    
+    for(k = 0; k < out->k; k++)
+        for(i = 0; i < out->h; i++)
+            for(j = 0; j < out->w; j++)        
+            {               
+                ip_mat *supp;
+                float val = 0.0;
+
+                supp = ip_mat_subset(pad, i, i + f->h, j, j + f->w);
+
+                for(ii = 0; ii < supp->h; ii++)
+                    for(jj = 0; jj < supp->w; jj++)
+                        val += get_val(a, i + ii, j + jj; k) * get_val(sub, ii, jj, k);
+ 
+                set_val(out, i, j, k, val);
+                ip_mat_free(supp);
+            }
+
+    ip_mat_free(pad);
+    /*clamp(out, 0, 255); da verificare se va inserito*/
+    compute_stats(out);
+
+    return out;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 /**** METODI GIA' IMPLEMENTATI ****/
 /* Genera dei numeri casuali con distribuzione Normale (versione base)
