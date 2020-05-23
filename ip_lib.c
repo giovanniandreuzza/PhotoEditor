@@ -93,7 +93,7 @@ void set_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k, float v){
     }
 }
 
-float get_normal_random(){
+float get_normal_random(float media, float std){
 
     float y1 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
     float y2 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
@@ -102,11 +102,9 @@ float get_normal_random(){
     return media + num*std;
 }
 
-
-
 /* Libera la memoria (data, stat e la struttura) */
 void ip_mat_free(ip_mat *a){/*da verificare in base alla create*/
-   unsigned i, j;
+    unsigned i, j;
 
     if(a != NULL){
         free(a->stat);
@@ -123,7 +121,7 @@ void ip_mat_free(ip_mat *a){/*da verificare in base alla create*/
 }
 
 /* Inizializza una ip_mat con dimensioni w h e k.
- * Ogni elemento è generato da una gaussiana con media mean e varianza var */
+ * Ogni elemento Ã¨ generato da una gaussiana con media mean e varianza var */
 void ip_mat_init_random(ip_mat * t, float mean, float var){
     unsigned i, j, k;
 
@@ -134,11 +132,10 @@ void ip_mat_init_random(ip_mat * t, float mean, float var){
             }
 }
 
-
 /* Esegue la somma di due ip_mat (tutte le dimensioni devono essere identiche)
  * e la restituisce in output. */
 ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b){
-   unsigned i, j, k;
+    unsigned i, j, k;
     ip_mat *out; 
 
     if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)){
@@ -159,10 +156,9 @@ ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b){
     }
 }
 
-
 /* Calcola la media di due ip_mat a e b e la restituisce in output.*/
 ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b){
-  unsigned i, j, k;
+    unsigned i, j, k;
     ip_mat *out;
 
     out = ip_mat_create(a->h, a->w, a->k, 0.0);
@@ -185,25 +181,13 @@ ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b){
     return out;
 }
 
-
-    /*oppure, ma non credo sia giusto
-    unsigned i, j, k;
-    ip_mat *out;
-
-    out = ip_mat_sum(a, b);
-
-    for(i=0; i<out->h; i++)
-            for(j=0; j<out->w; j++)
-                for(k=0; k<out->k; k++)
-                    set_val(out, i, j, k, get_val(out, i, k, k)/2);*/
-
 /* Operazione di corruzione con rumore gaussiano:
  * Aggiunge del rumore gaussiano all'immagine, il rumore viene enfatizzato
  * per mezzo della variabile amount.
  * out = a + gauss_noise*amount
  * */
 ip_mat * ip_mat_corrupt(ip_mat * a, float amount){
-     unsigned i, j, k;
+    unsigned i, j, k;
     ip_mat *out;
 
     out = ip_mat_create(a->h, a->w, a->k, 0.0);
@@ -214,8 +198,8 @@ ip_mat * ip_mat_corrupt(ip_mat * a, float amount){
             for(k=0; k<a->k; k++)
                 set_val(out, i, j, k, (get_val(a, i, k, k) + get_normal_random(0.0, (amount / 2)));
         }
-
-    /*aggiungere controllo che i valori siano tra 0 e 255*/
+            
+    /*bisogna aggiungere controllo che i valori siano tra 0 e 255 ?*/
 
     compute_stats(out);
     return out;
@@ -226,11 +210,9 @@ ip_mat * create_edge_filter(){
     unsigned i, j, k;
     ip_mat *out;
 
-    out = ip_mat_create(3, 3, 3, -1);
+    out = ip_mat_create(3, 3, 1, -1);
 
     set_val(out, 1, 1, 0, 8);
-    set_val(out, 1, 1, 1, 8);
-    set_val(out, 1, 1, 2, 8);
 
     compute_stats(out);
     return out;
@@ -247,7 +229,6 @@ ip_mat * create_edge_filter(){
  * di valori in [0,new_max].
  * */
 void rescale(ip_mat * t, float new_max){
-    
     unsigned i, j, k;
 
     compute_stats(t);
@@ -264,4 +245,3 @@ void rescale(ip_mat * t, float new_max){
                 set_val(t, i, j, k, scal);
             }
 }
-
