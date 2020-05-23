@@ -93,7 +93,7 @@ void set_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k, float v){
     }
 }
 
-float get_normal_random(){
+float get_normal_random(float media, float std){
     float y1 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
     float y2 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
     return cos(2*PI*y2)*sqrt(-2.*log(y1));
