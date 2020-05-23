@@ -232,3 +232,18 @@ ip_mat * ip_mat_add_scalar(ip_mat *a, float c) {
 ip_mat * ip_mat_brighten(ip_mat * a, float bright) {
     return ip_mat_add_scalar(a, bright);
 }
+
+ip_mat * create_gaussian_filter(unsigned int h, unsigned int w, unsigned int k, float sigma) {
+    int i, j, m, cx = (int) w / 2, cy = (int) h / 2;
+    ip_mat * ip_mat_new = ip_mat_create(h, w, k, 0);
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            for (m = 0; m < k; m++) {
+                int x = j - cx;
+                int y = i - cy;
+                ip_mat_new -> data[i][j][m] = (1 / (2 * PI * sigma * sigma)) * exp(-(x*x - y*y)/(2*sigma*sigma));
+            }
+        }
+    }
+    return ip_mat_new;
+}
