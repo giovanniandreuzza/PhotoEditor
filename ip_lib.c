@@ -215,3 +215,16 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
     
     return ip_mat_new;
 }
+
+ip_mat * ip_mat_add_scalar(ip_mat *a, float c) {
+    int i, j, m;
+    ip_mat * ip_mat_new = ip_mat_create(a -> h, a -> w, a -> k, 0);
+    for (i = 0; i < a -> h; i++) {
+        for (j = 0; j < a -> w; j++) {
+            for (m = 0; m < a -> k; m++) {
+                ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m] + c;
+            }
+        }
+    }
+    return ip_mat_new;
+}
