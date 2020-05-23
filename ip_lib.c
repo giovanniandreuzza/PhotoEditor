@@ -101,6 +101,155 @@ float get_normal_random(float media, float std){
     return media + num*std;
 }
 
+ip_mat * ip_mat_create(unsigned int h, unsigned int w,unsigned int k, float v) {
+    int i, j, m;
+    ip_mat * ip_mat_new = (ip_mat *) malloc (sizeof(ip_mat *));
+
+    stats * stat = (stats *) malloc (sizeof(stats *));
+    stat -> min = v;
+    stat -> max = v;
+    stat -> mean = v;
+
+    float *** data = (float ***) malloc(h * sizeof(float **));
+    for (i = 0; i < h; i++) {
+        data[i] = (float **) malloc (w * sizeof(float *));
+        for (j = 0; j < w; j++) {
+            data[i][j] = (float *) malloc (k * sizeof(float));
+        }
+    }
+
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            for (m = 0; m < k; m++) {
+                data[i][j][m] = v;
+            }
+        }
+    }
+
+    ip_mat_new -> w = w;
+    ip_mat_new -> h = h;
+    ip_mat_new -> k = k;
+    ip_mat_new -> stat = stat;
+    ip_mat_new -> data = data;
+    return ip_mat_new;
+}
+
+void compute_stats(ip_mat * t) {
+    float min = 255, max = 0, mean = 0, cont = 0;
+    int i, j, m;
+
+    for (i = 0; i < t -> h; i++) {
+        for (j = 0; j < t -> w; j++) {
+            for (m = 0; m < t -> k; m++) {
+                float value = (t -> data)[i][j][m];
+                if(value > max) {
+                    max = value;
+                }
+                if(value < min) {
+                    min = value;
+                }
+                mean += value;
+                cont++;
+            }
+        }
+    }
+
+    t -> stat -> min = min;
+    t -> stat -> max = max;
+    t -> stat -> mean = mean / cont;
+}
+
+ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
+    int i, j, m;
+    ip_mat * ip_mat_new;
+    if (dimensione == 0) {
+        if (a -> w == b -> w && a -> k == b -> k) {
+            ip_mat_new = ip_mat_create(a -> h + b -> h, a -> w, a -> k, 0);
+            for (i = 0; i < a -> h + b -> h; i++) {
+                for (j = 0; j < a -> w; j++) {
+                    for (m = 0; m < a -> k; m++) {
+                        if (i < a -> h) {
+                            ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m];
+                        } else {
+                            ip_mat_new -> data[i][j][m] = (b -> data)[i - a -> h][j][m];
+                        }
+                    }
+                }
+            }
+        } else {
+            ip_mat_new = NULL;
+        }
+    } else if (dimensione == 1) {
+        if (a -> h == b -> h && a -> k == b -> k) {
+            ip_mat_new = ip_mat_create(a -> h, a -> w + b -> w, a -> k, 0);
+            for (i = 0; i < a -> h; i++) {
+                for (j = 0; j < a -> w + b -> w; j++) {
+                    for (m = 0; m < a -> k; m++) {
+                        if (j < a -> w) {
+                            ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m];
+                        } else {
+                            ip_mat_new -> data[i][j][m] = (b -> data)[i][j - a -> w][m];
+                        }
+                    }
+                }
+            }
+        } else {
+            ip_mat_new = NULL;
+        }
+    } else {
+        if (a -> h == b -> h && a -> w == b -> w) {
+            ip_mat_new = ip_mat_create(a -> h, a -> w, a -> k + b -> k, 0);
+            for (i = 0; i < a -> h; i++) {
+                for (j = 0; j < a -> w; j++) {
+                    for (m = 0; m < a -> k + b -> k; m++) {
+                        if (m < a -> k) {
+                            ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m];
+                        } else {
+                            ip_mat_new -> data[i][j][m] = (b -> data)[i][j][m - a -> k];
+                        }
+                    }
+                }
+            }
+        } else {
+            ip_mat_new = NULL;
+        }
+    }
+
+    return ip_mat_new;
+}
+
+ip_mat * ip_mat_add_scalar(ip_mat *a, float c) {
+    int i, j, m;
+    ip_mat * ip_mat_new = ip_mat_create(a -> h, a -> w, a -> k, 0);
+    for (i = 0; i < a -> h; i++) {
+        for (j = 0; j < a -> w; j++) {
+            for (m = 0; m < a -> k; m++) {
+                ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m] + c;
+            }
+        }
+    }
+    return ip_mat_new;
+}
+
+ip_mat * ip_mat_brighten(ip_mat * a, float bright) {
+    return ip_mat_add_scalar(a, bright);
+}
+
+ip_mat * create_gaussian_filter(unsigned int h, unsigned int w, unsigned int k, float sigma) {
+    int i, j, m, cx = (int) w / 2, cy = (int) h / 2;
+    ip_mat * ip_mat_new = ip_mat_create(h, w, k, 0);
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            for (m = 0; m < k; m++) {
+                int x = j - cx;
+                int y = i - cy;
+                ip_mat_new -> data[i][j][m] = (1 / (2 * PI * sigma * sigma)) * exp(-(x*x - y*y)/(2*sigma*sigma));
+            }
+        }
+    }
+    return ip_mat_new;
+}
+
 /* Libera la memoria (data, stat e la struttura) */
 void ip_mat_free(ip_mat *a){/*da verificare in base alla create*/
     unsigned i, j;
@@ -490,4 +639,3 @@ void rescale(ip_mat * t, float new_max){
 
                 set_val(t, i, j, k, scal);
             }
-}
