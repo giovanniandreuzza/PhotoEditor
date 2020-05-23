@@ -346,36 +346,3 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
 
     return out;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-/**** METODI GIA' IMPLEMENTATI ****/
-/* Genera dei numeri casuali con distribuzione Normale (versione base)
- * https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
- * */
-float get_normal_random();
-
-/* Converte una Bitmap in una ip_mat*/
-ip_mat * bitmap_to_ip_mat(Bitmap * img);
-
-/* Converte una ip_mat in una bitmap*/
-Bitmap * ip_mat_to_bitmap(ip_mat * t);
-
-/* Visualizza i dati stampando in ordine le matrici rispetto
- * la terza dimensione.
- * Prima stamperemo t->data[...][...][0] poi t->data[...][...][1] ...
- * */
-void ip_mat_show(ip_mat * t);
-
-/* Visualizza a video le statistiche per ogni canale.
- * */
-void ip_mat_show_stats(ip_mat * t);
