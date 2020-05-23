@@ -639,3 +639,4 @@ void rescale(ip_mat * t, float new_max){
 
                 set_val(t, i, j, k, scal);
             }
+}
