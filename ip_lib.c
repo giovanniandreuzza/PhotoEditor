@@ -137,7 +137,7 @@ ip_mat * ip_mat_mul_scalar(ip_mat *a, float c){
 /* Effettua la fusione (combinazione convessa) di due immagini */ 
 ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
 	unsigned int i,j,l;
-	ip_mat * fusion = ip_mat_create(a->h, a->w, a->k, 0);
+	ip_mat * fusion = ip_mat_create(a->h, a->w, a->k, 0.0);
 	for(i = 0; i < a->h; i++){
 		for(j = 0; j < a->w; j++){
 			for(l = 0; l < a->k; l++){
@@ -160,7 +160,7 @@ ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
 ip_mat * ip_mat_padding(ip_mat * a, int pad_h, int pad_w){
 	unsigned int i,j,l;
 	int supp_i = 0, supp_j = 0;
-	ip_mat * out = ip_mat_create(a->h + 2*pad_h, a->w + 2*pad_w, a->k, 0);
+	ip_mat * out = ip_mat_create(a->h + 2*pad_h, a->w + 2*pad_w, a->k, 0.0);
 	for(i = 0; i < out->h; i++){
 		for(j = 0; j < out->w; j++){
 			for(l = 0; l < out->k; l++){
@@ -180,7 +180,7 @@ ip_mat * ip_mat_padding(ip_mat * a, int pad_h, int pad_w){
 /* Crea un filtro medio per la rimozione del rumore */
 ip_mat * create_average_filter(int w, int h, int k){
 	int i,j,l;
-	ip_mat * average = ip_mat_create(h, w, k,0);
+	ip_mat * average = ip_mat_create(h, w, k,0.0);
 	for(i = 0; i<h; i++){
 		for(j = 0; j<w; j++){
 			for(l = 0; l<k; l++){
