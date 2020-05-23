@@ -96,15 +96,95 @@ void set_val(ip_mat * a, unsigned int i,unsigned int j,unsigned int k, float v){
 float get_normal_random(float media, float std){
     float y1 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
     float y2 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );
-    return cos(2*PI*y2)*sqrt(-2.*log(y1));
+    float num = cos(2*PI*y2)*sqrt(-2.*log(y1));
 
+    return media + num*std;
+}
+
+/* Libera la memoria (data, stat e la struttura) */
+void ip_mat_free(ip_mat *a){/*da verificare in base alla create*/
+    unsigned i, j;
+
+    if(a != NULL){
+        free(a->stat);
+
+        for(i=0; i<a->h; i++){
+            for(j=0; j<a->w; j++){
+                free(a->data[i][j]);
+            }
+            free(a->data[i]);
+        }
+        free(a->data);
+        free(a);
+    }
+}
+
+/* Inizializza una ip_mat con dimensioni w h e k.
+ * Ogni elemento Ã¨ generato da una gaussiana con media mean e varianza var */
+void ip_mat_init_random(ip_mat * t, float mean, float var){
+    unsigned i, j, k;
+
+    for(i=0; i<t->h; i++)
+        for(j=0; j<t->w; j++)
+            for(k=0; k<t->k; k++){
+                set_val(t, i, j, k, get_normal_random(mean, var));
+            }
+}
+
+/* Esegue la somma di due ip_mat (tutte le dimensioni devono essere identiche)
+ * e la restituisce in output. */
+ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b){
+    unsigned i, j, k;
+    ip_mat *out;
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)){
+        printf("The dimensions are different");
+        exit(1);
+    }
+    else{
+    	out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+        for(i=0; i<out->h; i++)
+            for(j=0; j<out->w; j++)
+                for(k=0; k<out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, j, k) + get_val(b, i, j, k)));
+
+        compute_stats(out);
+
+        return out;
+    }
+}
+
+/* Calcola la media di due ip_mat a e b e la restituisce in output.*/
+ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b){
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    if((a->h != b->h) && (a->w != b->w) && (a->k != b->k)){
+        printf("The dimensions are different");
+        exit(1);
+    }
+    else{
+        for(i=0; i<out->h; i++)
+            for(j=0; j<out->w; j++)
+                for(k=0; k<out->k; k++)
+                    set_val(out, i, j, k, (get_val(a, i, j, k) + get_val(b, i, j, k)/2));
+
+        compute_stats(out);
+        return out;
+    }
+
+    compute_stats(out);
+    return out;
 }
 
 /* Restituisce una sotto-matrice, ovvero la porzione individuata da:
  * t->data[row_start...row_end][col_start...col_end][0...k]
  * La terza dimensione la riportiamo per intero, stiamo in sostanza prendendo un sottoinsieme
  * delle righe e delle colonne.
- * */						
+ * */
 ip_mat * ip_mat_subset(ip_mat * t, unsigned int row_start, unsigned int row_end, unsigned int col_start, unsigned int col_end){
 	/*(row_end-row_start)+1 sarà la dimensione di "righe", stessa cosa per le colonne */
 	unsigned int i,j,l;
@@ -134,7 +214,7 @@ ip_mat * ip_mat_mul_scalar(ip_mat *a, float c){
 	return tensore;
 }
 
-/* Effettua la fusione (combinazione convessa) di due immagini */ 
+/* Effettua la fusione (combinazione convessa) di due immagini */
 ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
 	unsigned int i,j,l;
 	ip_mat * fusion = ip_mat_create(a->h, a->w, a->k, 0.0);
@@ -156,7 +236,7 @@ ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha){
  *      out.k = a.k
  * con valori nulli sui bordi corrispondenti al padding e l'immagine "a" riportata
  * nel centro
- * */ 
+ * */
 ip_mat * ip_mat_padding(ip_mat * a, int pad_h, int pad_w){
 	unsigned int i,j,l;
 	int supp_i = 0, supp_j = 0;
@@ -185,7 +265,7 @@ ip_mat * create_average_filter(int w, int h, int k){
 		for(j = 0; j<w; j++){
 			for(l = 0; l<k; l++){
 				average->data[i][j][l] = (1/(h*w));
-			}		
+			}
 		}
 	}
 	return average;
@@ -265,9 +345,9 @@ ip_mat * ip_mat_to_gray_scale(ip_mat * in)
             for(n = 0; n < 3; n++)
                 set_val(out, i, j, n, (sum / 3));
         }
-        
+
     compute_stats(out);
-    
+
     return out;
 }
 
@@ -277,8 +357,8 @@ ip_mat * create_emboss_filter()
     unsigned i, j, k;
     ip_mat *out;
     float emboss_val[][] = {
-        {-2.0, -1.0, 0.0}, 
-        {-1.0, 1.0, 1.0}, 
+        {-2.0, -1.0, 0.0},
+        {-1.0, 1.0, 1.0},
         {0.0, 1.0, 2.0}
     };
 
@@ -322,11 +402,11 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
 
     out = ip_mat_create(a->h, a->w, a->k, 0.0);/**che sia da fare il controllo che *a != NULL?*/
     pad = ip_mat_padding(a, pad_h, pad_w)
-    
+
     for(k = 0; k < out->k; k++)
         for(i = 0; i < out->h; i++)
-            for(j = 0; j < out->w; j++)        
-            {               
+            for(j = 0; j < out->w; j++)
+            {
                 ip_mat *supp;
                 float val = 0.0;
 
@@ -335,7 +415,7 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
                 for(ii = 0; ii < supp->h; ii++)
                     for(jj = 0; jj < supp->w; jj++)
                         val += get_val(a, i + ii, j + jj; k) * get_val(sub, ii, jj, k);
- 
+
                 set_val(out, i, j, k, val);
                 ip_mat_free(supp);
             }
@@ -345,4 +425,69 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f)
     compute_stats(out);
 
     return out;
+}
+
+/* Operazione di corruzione con rumore gaussiano:
+ * Aggiunge del rumore gaussiano all'immagine, il rumore viene enfatizzato
+ * per mezzo della variabile amount.
+ * out = a + gauss_noise*amount
+ * */
+ip_mat * ip_mat_corrupt(ip_mat * a, float amount){
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(a->h, a->w, a->k, 0.0);
+
+    for(i=0; i<a->h; i++)
+        for(j=0; j<a->w; j++)
+        {
+            for(k=0; k<a->k; k++)
+                set_val(out, i, j, k, (get_val(a, i, k, k) + get_normal_random(0.0, (amount / 2)));
+        }
+
+    /*bisogna aggiungere controllo che i valori siano tra 0 e 255 ?*/
+
+    compute_stats(out);
+    return out;
+}
+
+/* Crea un filtro per rilevare i bordi */
+ip_mat * create_edge_filter(){
+    unsigned i, j, k;
+    ip_mat *out;
+
+    out = ip_mat_create(3, 3, 1, -1);
+
+    set_val(out, 1, 1, 0, 8);
+
+    compute_stats(out);
+    return out;
+}
+
+/* Effettua una riscalatura dei dati tale che i valori siano in [0,new_max].
+ * Utilizzate il metodo compute_stat per ricavarvi il min, max per ogni canale.
+ *
+ * I valori sono scalati tramite la formula valore-min/(max - min)
+ *
+ * Si considera ogni indice della terza dimensione indipendente, quindi l'operazione
+ * di scalatura va ripetuta per ogni "fetta" della matrice 3D.
+ * Successivamente moltiplichiamo per new_max gli elementi della matrice in modo da ottenere un range
+ * di valori in [0,new_max].
+ * */
+void rescale(ip_mat * t, float new_max){
+    unsigned i, j, k;
+
+    compute_stats(t);
+    float min = t->stat->min;
+    float max = t->stat->max;
+
+    for(i=0; i<t->h; i++)
+        for(j=0; j<t->w; j++)
+            for(k=0; k<t->k; k++)
+            {
+                float val = get_val(t, i, j, k);
+                float scal = ((val - min) / (max - min)) * new_max;
+
+                set_val(t, i, j, k, scal);
+            }
 }
