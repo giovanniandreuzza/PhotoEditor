@@ -102,7 +102,36 @@ float get_normal_random(){
 
 /* Inizializza una ip_mat con dimensioni h w e k. Ogni elemento è inizializzato a v.
  * Inoltre crea un vettore di stats per contenere le statische sui singoli canali.
- * */
+ */
 ip_mat * ip_mat_create(unsigned int h, unsigned int w,unsigned  int k, float v) {
-  int a = 0;
+    int i, j, m;
+    ip_mat * ip_mat_new = (ip_mat *) malloc (sizeof(ip_mat *));
+    
+    stats * stat = (stats *) malloc (sizeof(stats *));
+    stat -> min = v;
+    stat -> max = v;
+    stat -> mean = v;
+    
+    float *** data = (float ***) malloc(w * sizeof(float **));
+    for (i = 0; i < w; i++) {
+        data[i] = (float **) malloc (h * sizeof(float *));
+        for (j = 0; j < h; j++) {
+            data[i][j] = (float *) malloc (k * sizeof(float));
+        }
+    }
+
+    for (i = 0; i < w; i++) {
+        for (j = 0; j < h; j++) {
+            for (m = 0; m < k; m++) {
+                data[i][j][m] = v;
+            }
+        }
+    }
+    
+    ip_mat_new -> w = w;
+    ip_mat_new -> h = h;
+    ip_mat_new -> k = k;
+    ip_mat_new -> stat = stat;
+    ip_mat_new -> data = data;
+    return ip_mat_new;
 }
