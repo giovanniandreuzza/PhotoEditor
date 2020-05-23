@@ -228,3 +228,7 @@ ip_mat * ip_mat_add_scalar(ip_mat *a, float c) {
     }
     return ip_mat_new;
 }
+
+ip_mat * ip_mat_brighten(ip_mat * a, float bright) {
+    return ip_mat_add_scalar(a, bright);
+}
