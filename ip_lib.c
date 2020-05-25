@@ -640,3 +640,32 @@ void rescale(ip_mat * t, float new_max) {
                 set_val(t, i, j, k, scal);
             }
 }
+			
+ip_mat * create_sharpen_filter() {
+    unsigned i, j, k;
+    ip_mat * out;
+    
+    float sharpen_val[][] = {
+        {
+            0.0, -1.0, 0.0
+        },
+        {
+            -1.0, 5.0, -1.0
+        },
+        {
+            0.0, -1.0, 0.0
+        }
+    };
+
+    out = ip_mat_create(3, 3, 3, 0.0);
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            for (k = 0; k < 3; k++) {
+                set_val(out, i, j, k, sharpen_val[i][j]);
+	    }
+	}
+    }
+
+    return out;
+}
