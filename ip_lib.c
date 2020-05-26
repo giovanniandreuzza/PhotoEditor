@@ -101,7 +101,7 @@ float get_normal_random(float media, float std) {
 }
 
 ip_mat * ip_mat_create(unsigned int h, unsigned int w, unsigned int k, float v) {
-    int i, j, m;
+    unsigned int i, j, m;
     ip_mat * ip_mat_new = (ip_mat *) malloc(sizeof(ip_mat));
 
     stats * stat = (stats *) malloc(sizeof(stats));
@@ -135,7 +135,7 @@ ip_mat * ip_mat_create(unsigned int h, unsigned int w, unsigned int k, float v) 
 
 void compute_stats(ip_mat * t) {
     float min = 255, max = 0, mean = 0, cont = 0;
-    int i, j, m;
+    unsigned int i, j, m;
 
     for (i = 0; i < t -> h; i++) {
         for (j = 0; j < t -> w; j++) {
@@ -159,7 +159,7 @@ void compute_stats(ip_mat * t) {
 }
 
 ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
-    int i, j, m;
+    unsigned int i, j, m;
     ip_mat * ip_mat_new;
     if (dimensione == 0) {
         if (a -> w == b -> w && a -> k == b -> k) {
@@ -178,7 +178,8 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 }
             }
         } else {
-            ip_mat_new = NULL;
+            printf("Errore...\n");
+            exit(1);
         }
     } else if (dimensione == 1) {
         if (a -> h == b -> h && a -> k == b -> k) {
@@ -197,7 +198,8 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 }
             }
         } else {
-            ip_mat_new = NULL;
+            printf("Errore...\n");
+            exit(1);
         }
     } else {
         if (a -> h == b -> h && a -> w == b -> w) {
@@ -216,20 +218,21 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 }
             }
         } else {
-            ip_mat_new = NULL;
+            printf("Errore...\n");
+            exit(1);
         }
     }
 
     return ip_mat_new;
 }
 
+
 ip_mat * ip_mat_add_scalar(ip_mat * a, float c) {
-    int i, j, m;
+    unsigned int i, j, m;
     ip_mat * ip_mat_new = ip_mat_create(a -> h, a -> w, a -> k, 0.0);
     for (i = 0; i < a -> h; i++) {
         for (j = 0; j < a -> w; j++) {
             for (m = 0; m < a -> k; m++) {
-                /*ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m] + c;*/
                 set_val(ip_mat_new, i, j, m, (a -> data)[i][j][m] + c);
             }
         }
@@ -239,29 +242,40 @@ ip_mat * ip_mat_add_scalar(ip_mat * a, float c) {
 }
 
 ip_mat * ip_mat_brighten(ip_mat * a, float bright) {
-    return ip_mat_add_scalar(a, bright);
+	if(a){
+    	return ip_mat_add_scalar(a, bright);
+	}
+	else{
+		printf("Errore: puntatore == NULL\n");
+		exit(1);
+	}
 }
 
 ip_mat * create_gaussian_filter(unsigned int h, unsigned int w, unsigned int k, float sigma) {
-    int i, j, m, cx = (int) w / 2, cy = (int) h / 2;
-    ip_mat * ip_mat_new = ip_mat_create(h, w, k, 0);
-    for (i = 0; i < h; i++) {
+    unsigned int i, j, m, cx = (int) w / 2, cy = (int) h / 2;
+    float somma;
+    ip_mat * ip_mat_new = ip_mat_create(h, w, k, 0.0);
+    for (m = 0; m < k; m++) {
+    somma = 0.0;
         for (j = 0; j < w; j++) {
-            for (m = 0; m < k; m++) {
+            for (i = 0; i < h; i++) {
                 int x = j - cx;
                 int y = i - cy;
-                /*ip_mat_new -> data[i][j][m] = (1 / (2 * PI * sigma * sigma)) * exp(-(x * x - y * y) / (2 * sigma * sigma));*/
-                set_val(ip_mat_new, i, j, m, (1 / (2 * PI * sigma * sigma)) * exp(-(x * x - y * y) / (2 * sigma * sigma)));
+                set_val(ip_mat_new, i, j, m, (1.0 / (2 * PI * (sigma * sigma))) * (exp(-((x * x) + (y * y)) / (2 * sigma * sigma))));
+                somma = somma +  ip_mat_new->data[i][j][m];
+                printf("%f\n", ip_mat_new->data[i][j][m]);
             }
         }
     }
+    ip_mat_new = ip_mat_mul_scalar(ip_mat_new, 1.0/(somma));
+    compute_stats(ip_mat_new);
     return ip_mat_new;
 }
 
 /* Libera la memoria (data, stat e la struttura) */
 void ip_mat_free(ip_mat * a) {
     /*da verificare in base alla create*/
-    unsigned i, j;
+    unsigned int i, j;
 
     if (a != NULL) {
     		free(a -> stat);
@@ -386,21 +400,26 @@ ip_mat * ip_mat_mul_scalar(ip_mat * a, float c) {
 
 /* Effettua la fusione (combinazione convessa) di due immagini */
 ip_mat * ip_mat_blend(ip_mat * a, ip_mat * b, float alpha) {
-
-    unsigned int i, j, l;
-    
-    ip_mat * fusion = ip_mat_create(a -> h, a -> w, a -> k, 0.0);
-    
-    for (i = 0; i < a -> h; i++) {
-        for (j = 0; j < a -> w; j++) {
-            for (l = 0; l < a -> k; l++) {
-                /*fusion -> data[i][j][l] = (alpha * (a -> data[i][j][l]) + ((1 - alpha) * (b -> data[i][j][l])));*/
-                set_val(fusion, i, j, l, ((alpha * get_val(a, i, j, l)) + ((1 - alpha) * get_val(b, i, j, l))));
-            }
-        }
-    }
-    
-    return fusion;
+	/*if (a -> h == b -> h && a -> w == b -> w){*/
+	
+	unsigned int i, j, l;
+	
+	ip_mat * fusion = ip_mat_create(a -> h, a -> w, a -> k, 0.0);
+	
+	for (i = 0; i < a -> h; i++) {
+	    for (j = 0; j < a -> w; j++) {
+	        for (l = 0; l < a -> k; l++) {
+	            /*fusion -> data[i][j][l] = (alpha * (a -> data[i][j][l]) + ((1 - alpha) * (b -> data[i][j][l])));*/
+	            set_val(fusion, i, j, l, ((alpha * get_val(a, i, j, l)) + ((1 - alpha) * get_val(b, i, j, l))));
+	        }
+	    }
+	}
+	
+	return fusion;
+	/*else {
+		printf("Immagini di dimensioni diverse\n");
+		exit(1);
+	}*/
 }
 
 /* Aggiunge un padding all'immagine. Il padding verticale è pad_h mentre quello
@@ -448,6 +467,7 @@ ip_mat * create_average_filter(int w, int h, int k) {
         for (j = 0; j < w; j++) {
             for (l = 0; l < k; l++) {
                 set_val(average, i, j, l, avg);
+                
             }
         }
     }
@@ -601,18 +621,15 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f) {
     out = ip_mat_create(a -> h, a -> w, a -> k, 0.0); /**che sia da fare il controllo che *a != NULL?*/
     pad = ip_mat_padding(a, pad_h, pad_w);
 
-    
-    for (i = 0; i < ((pad -> h) - (f -> h)); i++) {
-        for (j = 0; j < ((pad -> w) - (f -> w)); j++) {
+    for (i = 0; i < ((pad -> h) - (f -> h) + 1); i++) {
+        for (j = 0; j < ((pad -> w) - (f -> w) + 1); j++) {
             for (k = 0; k < pad -> k; k++) {
+            
             	float val = 0.0;
 
                 for (ii = 0; ii < (f -> h) ; ii++) {
                     for (jj = 0; jj < (f -> w); jj++) {
-                    	/*float primo = get_val(a, i + ii, j + jj, k);*/
-                    	/*float secondo = get_val(supp, ii, jj, k);*/
-                    	/*primo = primo+secondo;*/
-                        /*val += get_val(a, i + ii, j + jj, k) * get_val(supp, ii, jj, k);*/
+                    
                         val = val+(pad ->data[i+ii][j+jj][k] * f ->data[ii][jj][k]);
                     }
                 }
@@ -623,7 +640,6 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f) {
     }
 
     ip_mat_free(pad);
-    /*clamp(out, 0, 255); da verificare se va inserito*/
     compute_stats(out);
 
     return out;
@@ -685,7 +701,7 @@ ip_mat * ip_mat_corrupt(ip_mat * a, float amount) {
     for (i = 0; i < a -> h; i++) {
         for (j = 0; j < a -> w; j++) {
             for (k = 0; k < a -> k; k++) {
-                set_val(out, i, j, k, (get_val(a, i, j, k) + get_normal_random(0.0, (amount / 2.0))));
+                set_val(out, i, j, k, (get_val(a, i, j, k) + get_normal_random(0.0, amount)));
             }
 
             /*bisogna aggiungere controllo che i valori siano tra 0 e 255 ?*/
