@@ -621,7 +621,13 @@ ip_mat * create_gaussian_filter(unsigned int h, unsigned int w, unsigned int k, 
         }
     }
     
-    ip_mat_new = ip_mat_mul_scalar(ip_mat_new, 1.0/(somma));
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            for (m = 0; m < k; m++) {
+                set_val(ip_mat_new, i, j, m, (get_val(ip_mat_new, i, j, m)) / somma);
+            }
+        }
+    }
     compute_stats(ip_mat_new);
     return ip_mat_new;
 }
