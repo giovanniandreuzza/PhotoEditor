@@ -210,7 +210,6 @@ ip_mat * ip_mat_copy(ip_mat * in ) {
 }
 
 ip_mat * ip_mat_subset(ip_mat * t, unsigned int row_start, unsigned int row_end, unsigned int col_start, unsigned int col_end) {
-    /*(row_end-row_start)+1 sarà la dimensione di "righe", stessa cosa per le colonne */
     unsigned int i, j, l;
     
     ip_mat * sub = ip_mat_create((row_end - row_start + 1), (col_end - col_start + 1), t -> k, 0.0);
@@ -236,18 +235,21 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 for (j = 0; j < a -> w; j++) {
                     for (m = 0; m < a -> k; m++) {
                         if (i < a -> h) {
-                            /*ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m];*/
                             set_val(ip_mat_new, i, j, m, (a -> data)[i][j][m]);
                         } else {
-                            /*ip_mat_new -> data[i][j][m] = (b -> data)[i - a -> h][j][m];*/
                             set_val(ip_mat_new, i, j, m, (b -> data)[i - a -> h][j][m]);
                         }
                     }
                 }
             }
         } else {
-            printf("Errore...\n");
-            exit(1);
+        	if (a -> w != b -> w) {
+            	printf("Le due immagini hanno larghezza diversa\n");
+            	exit(1);
+        	} else {
+        		printf("Le due immagini hanno un numero di canali diverso\n");
+            	exit(1);
+        	}
         }
     } else if (dimensione == 1) {
         if (a -> h == b -> h && a -> k == b -> k) {
@@ -256,18 +258,21 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 for (j = 0; j < a -> w + b -> w; j++) {
                     for (m = 0; m < a -> k; m++) {
                         if (j < a -> w) {
-                            /*ip_mat_new -> data[i][j][m] = (a -> data)[i][j][m];*/
                             set_val(ip_mat_new, i, j, m, (a -> data)[i][j][m]);
                         } else {
-                            /*ip_mat_new -> data[i][j][m] = (b -> data)[i][j - a -> w][m];*/
                             set_val(ip_mat_new, i, j, m, (b -> data)[i][j - a -> w][m]);
                         }
                     }
                 }
             }
         } else {
-            printf("Errore...\n");
-            exit(1);
+            if (a -> h != b -> h) {
+            	printf("Le due immagini hanno altezza diversa\n");
+            	exit(1);
+        	} else {
+        		printf("Le due immagini hanno un numero di canali diverso\n");
+            	exit(1);
+        	}
         }
     } else {
         if (a -> h == b -> h && a -> w == b -> w) {
@@ -286,8 +291,13 @@ ip_mat * ip_mat_concat(ip_mat * a, ip_mat * b, int dimensione) {
                 }
             }
         } else {
-            printf("Errore...\n");
-            exit(1);
+            if (a -> w != b -> w) {
+            	printf("Le due immagini hanno larghezza diversa\n");
+            	exit(1);
+        	} else {
+        		printf("Le due immagini hanno altezza diversa\n");
+            	exit(1);
+        	}
         }
     }
 
@@ -298,7 +308,7 @@ ip_mat * ip_mat_sum(ip_mat * a, ip_mat * b) {
     unsigned i, j, k;
     ip_mat * out;
 
-    if ((a -> h != b -> h) && (a -> w != b -> w) && (a -> k != b -> k)) {
+    if ((a -> h != b -> h) || (a -> w != b -> w) || (a -> k != b -> k)) {
         printf("Immagini di dimensioni diverse\n");
         exit(1);
     } else {
@@ -320,9 +330,9 @@ ip_mat * ip_mat_sub(ip_mat * a, ip_mat * b) {
     unsigned i, j, k;
     ip_mat * out = NULL;
 
-    if ((a -> h != b -> h) && (a -> w != b -> w) && (a -> k != b -> k)) /*controllo che le dimensioni siano identiche*/ {
+    if ((a -> h != b -> h) || (a -> w != b -> w) || (a -> k != b -> k)) {
         printf("Immagini di dimensioni diverse\n");
-        exit(1); /*inserire codice errore*/
+        exit(1); 
     } else {
         out = ip_mat_create(a -> h, a -> w, a -> k, 0.0);
 
@@ -376,7 +386,7 @@ ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b) {
 
     out = ip_mat_create(a -> h, a -> w, a -> k, 0.0);
 
-    if ((a -> h != b -> h) && (a -> w != b -> w) && (a -> k != b -> k)) {
+    if ((a -> h != b -> h) || (a -> w != b -> w) || (a -> k != b -> k)) {
         printf("Immagini di dimensioni diverse\n");
         exit(1);
     } else {
@@ -390,9 +400,6 @@ ip_mat * ip_mat_mean(ip_mat * a, ip_mat * b) {
         compute_stats(out);
         return out;
     }
-
-    compute_stats(out);
-    return out;
 }
 
 ip_mat * ip_mat_to_gray_scale(ip_mat * in ) {
@@ -506,16 +513,13 @@ ip_mat * ip_mat_convolve(ip_mat * a, ip_mat * f) {
 ip_mat * ip_mat_padding(ip_mat * a, unsigned int pad_h, unsigned int pad_w) {
 
     unsigned int i, j, l;
-    unsigned int supp_i = 0, supp_j = 0;
     
     ip_mat * out = ip_mat_create(a -> h + 2 * pad_h, a -> w + 2 * pad_w, a -> k, 0.0);
     
     for (i = 0; i < out -> h; i++) {
-    	supp_i = i;
         for (j = 0; j < out -> w; j++) {
-        	supp_j = j;
             for (l = 0; l < out -> k; l++) {
-                if (supp_i < pad_h || i >= (a -> h + pad_h) || supp_j < pad_w || j >= (a -> w + pad_w)) {
+                if (i < pad_h || i >= (a -> h + pad_h) || j < pad_w || j >= (a -> w + pad_w)) {
                     set_val(out, i, j, l, 0.0); 
                 } else {
                     set_val(out, i, j, l, get_val(a, (i - pad_h), (j - pad_w), l));
