@@ -5,13 +5,12 @@
 #include <stdio.h>
 #include <math.h>
 #include "ip_lib.h"
+
 #include "bmp.h"
 
 void ip_mat_show(ip_mat * t) {
     unsigned int i, l, j;
-    
     printf("Matrix of size %d x %d x %d (hxwxk)\n", t -> h, t -> w, t -> k);
-
     for (l = 0; l < t -> k; l++) {
         printf("Slice %d\n", l);
         for (i = 0; i < t -> h; i++) {
@@ -38,7 +37,7 @@ void ip_mat_show_stats(ip_mat * t) {
 }
 
 ip_mat * bitmap_to_ip_mat(Bitmap * img) {
-    unsigned int i, j;
+    unsigned int i = 0, j = 0;
 
     unsigned char R, G, B;
 
@@ -47,9 +46,9 @@ ip_mat * bitmap_to_ip_mat(Bitmap * img) {
 
     ip_mat * out = ip_mat_create(h, w, 3, 0);
 
-    for (i = 0; i < h; i++) {      /* rows */
-        for (j = 0; j < w; j++) {  /* columns */
-            bm_get_pixel(img, j, i, &R, &G, &B);
+    for (i = 0; i < h; i++) /* rows */ {
+        for (j = 0; j < w; j++) /* columns */ {
+            bm_get_pixel(img, j, i, & R, & G, & B);
             set_val(out, i, j, 0, (float) R);
             set_val(out, i, j, 1, (float) G);
             set_val(out, i, j, 2, (float) B);
@@ -60,43 +59,42 @@ ip_mat * bitmap_to_ip_mat(Bitmap * img) {
 }
 
 Bitmap * ip_mat_to_bitmap(ip_mat * t) {
-    unsigned int i, j;
 
     Bitmap * b = bm_create(t -> w, t -> h);
 
-    for (i = 0; i < t -> h; i++) {       /* rows */
-        for (j = 0; j < t -> w; j++) {   /* columns */
+    unsigned int i, j;
+    for (i = 0; i < t -> h; i++) /* rows */ {
+        for (j = 0; j < t -> w; j++) /* columns */ {
             bm_set_pixel(b, j, i, (unsigned char) get_val(t, i, j, 0),
                 (unsigned char) get_val(t, i, j, 1),
-                (unsigned char) get_val(t, i, j, 2)
-            );
+                (unsigned char) get_val(t, i, j, 2));
         }
     }
-    
     return b;
 }
 
 float get_val(ip_mat * a, unsigned int i, unsigned int j, unsigned int k) {
-    if (i >= a -> h || j >= a -> w || k >= a -> k) {
+    if (i < a -> h && j < a -> w && k < a -> k) {
+        /* j>=0 and k>=0 and i>=0 is non sense*/
+        return a -> data[i][j][k];
+    } else {
         printf("Errore get_val!!!");
         exit(1);
     }
-    
-    return a -> data[i][j][k];
 }
 
 void set_val(ip_mat * a, unsigned int i, unsigned int j, unsigned int k, float v) {
-    if (i >= a -> h || j >= a -> w || k >= a -> k) {
+    if (i < a -> h && j < a -> w && k < a -> k) {
+        a -> data[i][j][k] = v;
+    } else {
         printf("Errore set_val!!!");
         exit(1);
     }
-    
-    a -> data[i][j][k] = v;
 }
 
 float get_normal_random(float media, float std) {
-    float y1 = ((float) (rand()) + 1.) / ((float) (RAND_MAX) + 1.);
-    float y2 = ((float) (rand()) + 1.) / ((float) (RAND_MAX) + 1.);
+    float y1 = ((float)(rand()) + 1.) / ((float)(RAND_MAX) + 1.);
+    float y2 = ((float)(rand()) + 1.) / ((float)(RAND_MAX) + 1.);
     float num = cosf(2 * PI * y2) * sqrt(-2. * log(y1));
 
     return media + num * std;
@@ -123,7 +121,7 @@ ip_mat * ip_mat_create(unsigned int h, unsigned int w, unsigned int k, float v) 
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
             for (l = 0; l < k; l++) {
-                set_val(data, i, j, k, v);
+                data[i][j][l] = v;
             }
         }
     }
