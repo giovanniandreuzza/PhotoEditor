@@ -1,6 +1,5 @@
 /*
  Laboratorio di programmazione A.A. 2019/2020
-
  Sebastiano Vascon
 */
 
